@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SemanticSketch Tools</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            font-size: 16px;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .tool-section {
+            display: none;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Welcome to SemanticSketch Tools</h1>
+
+    <div class="nav-buttons">
+        <button onclick="showSection('rdfToMermaid')">RDF to Mermaid Conversion</button>
+        <button onclick="showSection('r2rmlToMermaid')">R2RML to Mermaid Conversion</button>
+        <button onclick="showSection('mermaidComparison')">Mermaid Comparison Tool</button>
+    </div>
+
+    <!-- RDF to Mermaid Tool Section -->
+    <div id="rdfToMermaid" class="tool-section">
+        <h2>RDF to Mermaid Conversion</h2>
+        <p>Use this tool to convert your RDF data into a visual Mermaid diagram.</p>
+        <!-- Add your tool UI here -->
+    </div>
+
+    <!-- R2RML to Mermaid Tool Section -->
+    <div id="r2rmlToMermaid" class="tool-section">
+        <h2>R2RML to Mermaid Conversion</h2>
+        <p>Convert R2RML mappings into visual Mermaid diagrams.</p>
+        <!-- Add your tool UI here -->
+    </div>
+
+    <!-- Mermaid Comparison Tool Section -->
+    <div id="mermaidComparison" class="tool-section">
+        <h2>Mermaid Comparison Tool</h2>
+        <p>Compare two Mermaid diagrams to find differences and similarities.</p>
+        <!-- Add your tool UI here -->
+    </div>
+
+    <script>
+        function showSection(sectionId) {
+            // Hide all sections
+            var sections = document.getElementsByClassName('tool-section');
+            for (var i = 0; i < sections.length; i++) {
+                sections[i].classList.remove('active');
+            }
+            
+            // Show the selected section
+            document.getElementById(sectionId).classList.add('active');
+        }
+    </script>
+
+</body>
+</html>
