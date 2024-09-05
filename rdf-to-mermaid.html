@@ -7,3 +7,23 @@
 
     <h2>Mermaid Output:</h2>
     <pre id="mermaidOutput"></pre>
+
+<div id="mermaid-output" class="mermaid"></div>
+
+<script>
+    function renderMermaidDiagram(mermaidSyntax) {
+        const mermaidDiv = document.getElementById("mermaid-output");
+        mermaidDiv.innerHTML = mermaidSyntax;
+        mermaid.contentLoaded(); // This triggers Mermaid to render the diagrams in the updated div.
+    }
+
+    // Example call
+    const exampleMermaidSyntax = `
+        graph TD;
+            A-->B;
+            A-->C;
+            B-->D;
+            C-->D;
+    `;
+    renderMermaidDiagram(exampleMermaidSyntax);
+</script>
