@@ -39,15 +39,10 @@
         }
 
         .tool-section {
-            display: none;
             background-color: white;
             padding: 20px;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .active {
-            display: block;
         }
     </style>
 </head>
@@ -56,42 +51,29 @@
     <h1>Welcome to SemanticSketch Tools</h1>
 
     <div class="nav-buttons">
-        <button onclick="showSection('rdfToMermaid')">RDF to Mermaid Conversion</button>
-        <button onclick="showSection('r2rmlToMermaid')">R2RML to Mermaid Conversion</button>
-        <button onclick="showSection('mermaidComparison')">Mermaid Comparison Tool</button>
+        <button onclick="loadTool('rdf-to-mermaid.html', 'rdfToMermaid.js')">RDF to Mermaid Conversion</button>
+        <button onclick="loadTool('r2rml-to-mermaid.html', 'r2rmlToMermaid.js')">R2RML to Mermaid Conversion</button>
+        <button onclick="loadTool('mermaid-comparison.html', 'mermaidComparison.js')">Mermaid Comparison Tool</button>
     </div>
 
-    <!-- RDF to Mermaid Tool Section -->
-    <div id="rdfToMermaid" class="tool-section">
-        <h2>RDF to Mermaid Conversion</h2>
-        <p>Use this tool to convert your RDF data into a visual Mermaid diagram.</p>
-        <!-- Add your tool UI here -->
-    </div>
-
-    <!-- R2RML to Mermaid Tool Section -->
-    <div id="r2rmlToMermaid" class="tool-section">
-        <h2>R2RML to Mermaid Conversion</h2>
-        <p>Convert R2RML mappings into visual Mermaid diagrams.</p>
-        <!-- Add your tool UI here -->
-    </div>
-
-    <!-- Mermaid Comparison Tool Section -->
-    <div id="mermaidComparison" class="tool-section">
-        <h2>Mermaid Comparison Tool</h2>
-        <p>Compare two Mermaid diagrams to find differences and similarities.</p>
-        <!-- Add your tool UI here -->
+    <div id="tool-container" class="tool-section">
+        <p>Select a tool to load its functionality here.</p>
     </div>
 
     <script>
-        function showSection(sectionId) {
-            // Hide all sections
-            var sections = document.getElementsByClassName('tool-section');
-            for (var i = 0; i < sections.length; i++) {
-                sections[i].classList.remove('active');
-            }
-            
-            // Show the selected section
-            document.getElementById(sectionId).classList.add('active');
+        function loadTool(htmlFile, jsFile) {
+            // Load HTML content
+            fetch(htmlFile)
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('tool-container').innerHTML = data;
+
+                    // Load the corresponding JS file after the HTML is loaded
+                    let script = document.createElement('script');
+                    script.src = jsFile;
+                    document.body.appendChild(script);
+                })
+                .catch(error => console.error('Error loading the tool:', error));
         }
     </script>
 
