@@ -90,8 +90,22 @@
             return node; // Fallback: just use the last segment of the IRI
         }
 
-        document.getElementById("convertBtn").addEventListener("click", function() {
+        function generateMermaidDiagram() {
             const rdfInput = document.getElementById("rdfInput").value;
-            const mermaidOutput = rdfToMermaid(rdfInput);
-            document.getElementById("mermaidOutput").textContent = mermaidOutput;
+            let mermaidOutput = rdfToMermaid(rdfInput);
+
+            // Use Mermaid syntax from the RDF conversion
+            document.getElementById('mermaid-syntax').textContent = mermaidOutput;
+            
+            // Set the innerHTML of the output div with the Mermaid syntax
+            const mermaidDiv = document.getElementById('mermaid-output');
+            mermaidDiv.innerHTML = mermaidOutput;
+
+            // Trigger Mermaid to re-render the diagrams in the updated div
+            mermaid.init(undefined, mermaidDiv);
+        }
+
+        // Initialize Mermaid
+        document.addEventListener("DOMContentLoaded", function() {
+            mermaid.initialize({ startOnLoad: false });
         });
