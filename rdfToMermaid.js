@@ -1,4 +1,4 @@
-   let classLabels = {};
+        let classLabels = {};
         let restrictionNodes = {};
 
         function detectRDFFormat(rdfInput) {
@@ -63,7 +63,7 @@
             return triples;
         }
 
-   function rdfToMermaid(rdfInput, format) {
+function rdfToMermaid(rdfInput, format) {
     console.log("Converting RDF to Mermaid...");
     console.log("Format:", format);
 
@@ -100,6 +100,14 @@
 
         console.log("Processing triple:", triple);
 
+        // Helper function to extract the last part of a URI (after # or /)
+        function truncateURI(uri) {
+            const splitURI = uri.split(/[#\/]/); // Split by either # or /
+            return splitURI[splitURI.length - 1]; // Return the last segment
+        }
+
+        const truncatedPredicate = truncateURI(predicate); // Truncate the predicate
+
         if (format === 'ntriples') {
             // Always include N-Triples
             if (subject.startsWith('_:') || object.startsWith('_:')) {
@@ -110,8 +118,8 @@
                 return; // Skip self-directed edges
             }
 
-            // Process N-Triples
-            mermaidOutput += `${formatNode(subject)} -- ${predicate} --> ${formatNode(object)}\n`;
+            // Process N-Triples with truncated predicate
+            mermaidOutput += `${formatNode(subject)} -- ${truncatedPredicate} --> ${formatNode(object)}\n`;
         } else {
             // Apply specific conditions for Turtle
             if (subject.startsWith('_:') || object.startsWith('_:')) {
@@ -152,6 +160,7 @@
     console.log("Generated Mermaid output:", mermaidOutput);
     return mermaidOutput;
 }
+
 
 
         function formatNode(iri) {
