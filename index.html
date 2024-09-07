@@ -58,16 +58,16 @@
         <button onclick="loadTool('r2rml-to-mermaid.html', 'r2rmlToMermaid.js')">R2RML to Mermaid Conversion</button>
         <button onclick="loadTool('mermaid-comparison.html', 'mermaidComparison.js')">Mermaid Comparison Tool</button>
     </div>
-
-    <div id="tool-container" class="tool-section">
-            <aside>
+<main>
+         <aside>
         <h2>Image Names</h2>
       <input type="file" id="file-input" multiple accept="image/*">
         <ul id="image-list"></ul>
     </aside>
+    <div id="tool-container" class="tool-section">       
         <p>Select a tool to load its functionality here.</p>
     </div>
-
+</main>
     <script>
         function loadTool(htmlFile, jsFile) {
             // Load HTML content
