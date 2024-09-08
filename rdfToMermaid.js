@@ -1,76 +1,102 @@
-        let classLabels = {};
-        let restrictionNodes = {};
 
-        function detectRDFFormat(rdfInput) {
-            console.log("Detecting RDF format...");
-            console.log("RDF Input:", rdfInput);
+    let classLabels = {};
+    let restrictionNodes = {};
+    let diagramCounter = 0;
 
-            const hasPrefix = rdfInput.includes('@prefix');
-            const hasSemicolon = rdfInput.includes(';');
-            const hasType = rdfInput.includes(' a ');
-            const hasLiteralType = rdfInput.includes('^^');
+    function detectRDFFormat(rdfInput) {
+        console.log("Detecting RDF format...");
+        console.log("RDF Input:", rdfInput);
 
-            console.log("Has @prefix:", hasPrefix);
-            console.log("Has semicolon:", hasSemicolon);
-            console.log("Has type:", hasType);
-            console.log("Has literal type:", hasLiteralType);
+        const hasPrefix = rdfInput.includes('@prefix');
+        const hasSemicolon = rdfInput.includes(';');
+        const hasType = rdfInput.includes(' a ');
+        const hasLiteralType = rdfInput.includes('^^');
 
-            if (hasPrefix || hasSemicolon || hasType) {
-                return 'turtle';
-            }
+        console.log("Has @prefix:", hasPrefix);
+        console.log("Has semicolon:", hasSemicolon);
+        console.log("Has type:", hasType);
+        console.log("Has literal type:", hasLiteralType);
 
-            const lines = rdfInput.trim().split('\n');
-            const isNTriples = lines.every(line => 
-                line.startsWith('<') && 
-                line.includes('>') && 
-                line.endsWith('.')
-            );
-
-            console.log("Is N-Triples:", isNTriples);
-            return isNTriples ? 'ntriples' : 'unknown';
+        if (hasPrefix || hasSemicolon || hasType) {
+            return 'turtle';
         }
 
-        function parseNTriples(rdfInput) {
-            console.log("Parsing N-Triples...");
-            console.log("N-Triples Input:", rdfInput);
+        const lines = rdfInput.trim().split('\n');
+        const isNTriples = lines.every(line => 
+            line.startsWith('<') && 
+            line.includes('>') && 
+            line.endsWith('.')
+        );
 
-            const triples = [];
-            const lines = rdfInput.trim().split('\n');
-            lines.forEach(line => {
-                console.log("Processing line:", line);
+        console.log("Is N-Triples:", isNTriples);
+        return isNTriples ? 'ntriples' : 'unknown';
+    }
 
-                const parts = line.split(' ');
-                if (parts.length < 3) {
-                    console.error("Invalid N-Triples line format:", line);
-                    return;
-                }
+    function parseNTriples(rdfInput) {
+        console.log("Parsing N-Triples manually...");
+        const triples = [];
+        const lines = rdfInput.trim().split('\n');
 
-                const subject = parts[0].replace(/<|>/g, '');
-                const predicate = parts[1].replace(/<|>/g, '');
-                let object = parts[2].replace(/<|>/g, '');
+        lines.forEach(line => {
+            console.log("Processing line:", line);
 
+            // Extract subject, predicate, and object using regex
+            const match = line.match(/<([^>]+)> <([^>]+)> (.+) \./);
+            if (match) {
+                const subject = match[1];
+                const predicate = match[2];
+                let object = match[3];
+
+                // Handle literals and URIs differently
                 if (object.startsWith('"')) {
-                    // Handle literal objects
-                    object = object.split('^^')[0].replace(/^"|"$/g, '');
-                    triples.push({ subject, predicate, object: `${object}["${object}"]` });
+                    // Literal object
+                    object = object.split('^^')[0].replace(/^"|"$/g, ''); // Remove datatype and quotes
+                    const formattedObject = object.replace(/\s+/g, '_'); // Replace spaces with underscores
+                    triples.push({ subject, predicate, object: `${formattedObject}["${object}"]` });
                 } else {
-                    // Handle non-literal objects
-                    object = object.replace(/^<|>$/g, '').replace(/>$/, '');
-                    triples.push({ subject, predicate, object });
+                    // URI object
+                    object = object.replace(/^<|>$/g, ''); // Remove angle brackets
+                    // Replace spaces with underscores in URIs
+                    triples.push({ subject, predicate, object: formatNode(object) });
                 }
-            });
-            console.log("Parsed triples:", triples);
-            return triples;
-        }
+            } else {
+                console.error("Invalid N-Triples line format:", line);
+            }
+        });
 
-function rdfToMermaid(rdfInput, format) {
-    console.log("Converting RDF to Mermaid...");
-    console.log("Format:", format);
+        console.log("Parsed triples:", triples);
+        return triples;
+    }
 
-    let triples;
-    if (format === 'ntriples') {
-        triples = parseNTriples(rdfInput);
-    } else {
+    function rdfToMermaid(rdfInput, format) {
+        console.log("Converting RDF to Mermaid...");
+        console.log("Format:", format);
+
+        let triples = format === 'ntriples' ? parseNTriples(rdfInput) : parseTurtle(rdfInput);
+
+        let mermaidOutput = "graph TD\n";
+        triples.forEach(triple => {
+            const subject = triple.subject;
+            const predicate = triple.predicate;
+            const object = triple.object;
+
+            console.log("Processing triple:", triple);
+
+            const truncatedPredicate = truncateURI(predicate); // Truncate the predicate
+
+            if (format === 'ntriples') {
+                mermaidOutput += processNTriples(subject, truncatedPredicate, object);
+            } else {
+                mermaidOutput += processTurtle(subject, truncatedPredicate, object, triples);
+            }
+        });
+
+        console.log("Generated Mermaid output:", mermaidOutput);
+        return mermaidOutput;
+    }
+
+    // Helper function to parse Turtle data
+    function parseTurtle(rdfInput) {
         const store = $rdf.graph();
         const contentType = 'text/turtle';
         const baseIRI = 'http://example.org/';
@@ -78,130 +104,127 @@ function rdfToMermaid(rdfInput, format) {
         try {
             $rdf.parse(rdfInput, store, baseIRI, contentType);
 
-            triples = store.statements.map(triple => ({
+            return store.statements.map(triple => ({
                 subject: triple.subject.value,
                 predicate: triple.predicate.value,
-                object: triple.object.value
+                object: triple.object.value,
+                isLiteral: triple.object.termType === "Literal" // Detect literal
             }));
         } catch (error) {
             console.error("Error parsing RDF:", error);
-            return "Error parsing RDF: " + error.message;
+            return [];
         }
     }
 
-    let mermaidOutput = "graph TD\n";
-    classLabels = {};
-    restrictionNodes = {};
+    // Helper function to extract the last part of a URI (after # or /)
+    function truncateURI(uri) {
+        const splitURI = uri.split(/[#\/]/);
+        return splitURI[splitURI.length - 1];
+    }
 
-    triples.forEach(triple => {
-        const subject = triple.subject;
-        const predicate = triple.predicate;
-        const object = triple.object;
+    // Helper function to process N-Triples triples
+    function processNTriples(subject, predicate, object) {
+        return `${formatNode(subject)} -- ${predicate} --> ${object}\n`;
+    }
 
-        console.log("Processing triple:", triple);
-
-        // Helper function to extract the last part of a URI (after # or /)
-        function truncateURI(uri) {
-            const splitURI = uri.split(/[#\/]/); // Split by either # or /
-            return splitURI[splitURI.length - 1]; // Return the last segment
+    // Helper function to process Turtle triples
+    function processTurtle(subject, predicate, object, triples) {
+        if (typeof predicate === 'undefined' || typeof object === 'undefined') {
+            console.error("Undefined predicate or object in triple:", subject, predicate, object);
+            return ''; // Skip if predicate or object is undefined
         }
 
-        const truncatedPredicate = truncateURI(predicate); // Truncate the predicate
+        if (predicate.endsWith('subClassOf')) {
+            return `${formatNode(subject)} -- subClassOf --> ${formatNode(object)}\n`;
+        } else if (predicate.endsWith('domain')) {
+            const property = subject;
+            const domain = object;
+            const rangeTriple = triples.find(t => t.subject === property && t.predicate.endsWith('range'));
+            if (rangeTriple) {
+                const range = rangeTriple.object;
+                const labelTriple = triples.find(t => t.subject === property && t.predicate.endsWith('label'));
+                const propertyLabel = labelTriple ? labelTriple.object : formatNode(property);
 
-        if (format === 'ntriples') {
-            // Always include N-Triples
-            if (subject.startsWith('_:') || object.startsWith('_:')) {
-                return; // Ignore blank nodes
-            }
-
-            if (subject === object) {
-                return; // Skip self-directed edges
-            }
-
-            // Process N-Triples with truncated predicate
-            mermaidOutput += `${formatNode(subject)} -- ${truncatedPredicate} --> ${formatNode(object)}\n`;
-        } else {
-            // Apply specific conditions for Turtle
-            if (subject.startsWith('_:') || object.startsWith('_:')) {
-                return; // Ignore blank nodes
-            }
-
-            if (subject === object) {
-                return; // Skip self-directed edges
-            }
-
-            if (predicate.endsWith('subClassOf')) {
-                mermaidOutput += `${formatNode(subject)} -- subClassOf --> ${formatNode(object)}\n`;
-            } else if (predicate.endsWith('domain')) {
-                const property = subject;
-                const domain = object;
-                const rangeTriple = triples.find(t => t.subject === property && t.predicate.endsWith('range'));
-                if (rangeTriple) {
-                    const range = rangeTriple.object;
-                    const labelTriple = triples.find(t => t.subject === property && t.predicate.endsWith('label'));
-                    const propertyLabel = labelTriple ? labelTriple.object : formatNode(property);
-
-                    if (domain !== range) {
-                        mermaidOutput += `${formatNode(domain)} -- ${propertyLabel} --> ${formatNode(range)}\n`;
-                    }
+                if (domain !== range) {
+                    return `${formatNode(domain)} -- ${propertyLabel} --> ${formatNode(range)}\n`;
                 }
-            } else if (predicate.endsWith('onProperty') || predicate.endsWith('allValuesFrom')) {
-                const restrictionLabel = `Restriction: ${predicate.split('#').pop()}`;
-                if (!restrictionNodes[subject]) {
-                    restrictionNodes[subject] = `${restrictionLabel}`;
-                }
-                mermaidOutput += `${formatNode(subject)} -- ${restrictionLabel} --> ${formatNode(object)}\n`;
-            } else if (predicate.endsWith('disjointWith')) {
-                mermaidOutput += `${formatNode(subject)} -- disjointWith --> ${formatNode(object)}\n`;
             }
-        }
-    });
-
-    console.log("Generated Mermaid output:", mermaidOutput);
-    return mermaidOutput;
-}
-
-
-
-        function formatNode(iri) {
-            console.log("Formatting node:", iri);
-
-            if (iri.startsWith('_:')) {
-                return ''; // Ignore blank nodes entirely
-            }
-            const label = classLabels[iri];
-            let node = iri.split('/').pop();
-            node = node.replace(/^_+/, 'blank_'); // Replace leading "_" with "blank_"
-            if (label) {
-                return `${node}["${label}"]`;
-            }
-            return node; // Fallback: just use the last segment of the IRI
+        } else if (predicate.endsWith('onProperty') || predicate.endsWith('allValuesFrom')) {
+            const restrictionLabel = `Restriction: ${predicate.split('#').pop()}`;
+            return `${formatNode(subject)} -- ${restrictionLabel} --> ${formatNode(object)}\n`;
+        } else if (predicate.endsWith('disjointWith')) {
+            return `${formatNode(subject)} -- disjointWith --> ${formatNode(object)}\n`;
         }
 
-        function generateMermaidDiagram() {
-            console.log("Generating Mermaid diagram...");
-            const rdfInput = document.getElementById("rdfInput").value;
-            const format = detectRDFFormat(rdfInput);
-            console.log("Detected format:", format);
+        return ''; // Default case
+    }
 
-            let mermaidOutput = rdfToMermaid(rdfInput, format);
+    // Helper function to format the node
+    function formatNode(iri) {
+        const node = truncateURI(iri);
+        return node.replace(/\s+/g, '_'); // Replace spaces with underscores
+    }
 
-            // Use Mermaid syntax from the RDF conversion
-            document.getElementById('mermaid-syntax').textContent = mermaidOutput;
-            
-            // Set the innerHTML of the output div with the Mermaid syntax
-            const mermaidDiv = document.getElementById('mermaid-output');
-            mermaidDiv.innerHTML = mermaidOutput;
+    function initializeMermaid() {
+        console.log("Initializing Mermaid...");
+        mermaid.initialize({ startOnLoad: false });
+    }
 
-            // Trigger Mermaid to re-render the diagrams in the updated div
-            try {
-                mermaid.init(undefined, mermaidDiv);
-            } catch (error) {
-                console.error("Error initializing Mermaid:", error);
-            }
+    function generateMermaidDiagram() {
+        console.log("Generating Mermaid diagram...");
+        const rdfInput = document.getElementById("rdfInput").value;
+        const format = detectRDFFormat(rdfInput);
+        console.log("Detected format:", format);
+
+        // Generate Mermaid output
+        let mermaidOutput = rdfToMermaid(rdfInput, format);
+
+        // Clear the previous Mermaid syntax
+        document.getElementById('mermaid-output').innerHTML = '';
+
+        // Set the Mermaid syntax
+        document.getElementById('mermaid-syntax').value = mermaidOutput;
+
+        // Re-run Mermaid to render the diagram
+        reRunMermaidDiagram();
+    }
+
+    function reRunMermaidDiagram() {
+        console.log("Re-running Mermaid diagram...");
+        const mermaidDiv = document.getElementById('mermaid-output');
+        const mermaidContent = document.getElementById('mermaid-syntax').value;
+
+        // Clear the current diagram
+        mermaidDiv.innerHTML = '';
+
+        // Create a new div for the updated Mermaid diagram
+        const newDiv = document.createElement('div');
+        newDiv.className = 'mermaid';
+        newDiv.innerHTML = mermaidContent;
+        mermaidDiv.appendChild(newDiv);
+
+        // Trigger Mermaid to render the new diagram
+        try {
+            mermaid.init(undefined, newDiv);
+        } catch (error) {
+            console.error("Error re-rendering Mermaid:", error);
         }
+    }
 
-        // Initialize Mermaid
-        document.addEventListener("DOMContentLoaded", function() {
-            mermaid.initialize({ startOnLoad: false });
-        });
+   function downloadDiagram() {
+        const mermaidDiv = document.getElementById('mermaid-output');
+
+        // Ensure Mermaid has finished rendering
+        setTimeout(() => {
+            html2canvas(mermaidDiv).then(canvas => {
+                const link = document.createElement('a');
+                link.href = canvas.toDataURL('image/png');
+                link.download = 'mermaid-diagram.png';
+                link.click();
+            }).catch(error => {
+                console.error("Error generating PNG:", error);
+            });
+        }, 1000); // Adjust the timeout value if needed
+    }
+
+    initializeMermaid();
