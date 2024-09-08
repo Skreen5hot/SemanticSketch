@@ -1,16 +1,19 @@
-        <h1>RDF to Mermaid Converter</h1>
+ <h1>RDF to Mermaid Converter</h1>
 
-        <!-- Input Area for RDF Syntax -->
-        <label for="rdfInput">RDF Input (Turtle or N-Triples format):</label><br>
-        <textarea id="rdfInput" rows="10" cols="100"></textarea><br><br>
+    <!-- Input Area for RDF Syntax -->
+    <label for="rdfInput">RDF Input (Turtle or N-Triples format):</label><br>
+    <textarea id="rdfInput" rows="10" cols="100"></textarea><br><br>
 
-        <!-- Button to Convert RDF to Mermaid -->
-        <button id="convertBtn" onclick="generateMermaidDiagram()">Convert to Mermaid</button><br><br>
+    <!-- Button to Convert RDF to Mermaid -->
+    <button id="convertBtn" onclick="generateMermaidDiagram()">Convert to Mermaid</button><br><br>
 
-        <!-- Display Mermaid Syntax -->
-        <h2>Mermaid Syntax:</h2>
-        <pre id="mermaid-syntax"></pre>
+    <!-- Display Mermaid Syntax -->
+    <h2>Mermaid Syntax:</h2>
+    <textarea id="mermaid-syntax" rows="10" cols="100"></textarea><br>
 
-        <!-- Output Area for the Diagram -->
-        <h2>Mermaid Diagram:</h2>
-        <div id="mermaid-output" class="mermaid"></div>
+    <!-- Button to ReRun Mermaid Diagram -->
+    <button id="reRunBtn" onclick="reRunMermaidDiagram()">ReRun Mermaid</button><br>
+
+    <!-- Output Area for the Diagram -->
+    <h2>Mermaid Diagram:</h2><button id="downloadPngBtn" onclick="downloadDiagram()">Download PNG</button>
+    <div id="mermaid-output" class="mermaid"></div>
