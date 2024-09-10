@@ -1,19 +1,43 @@
- <h1>RDF to Mermaid Converter</h1>
-
+<div class="sections">
+  <h1>RDF to Mermaid Converter</h1>
+  <section class="file-section" data-section="1">
     <!-- Input Area for RDF Syntax -->
-    <label for="rdfInput">RDF Input (Turtle or N-Triples format):</label><br>
-    <textarea id="rdfInput" rows="10" cols="100"></textarea><br><br>
-
+    <h2>RDF Input (Turtle, and N-Triples):</h2>
+    <select class="file-select">
+      <option value="" disabled selected>Select a file to open</option>
+    </select>
+    <button class="fileOpenBtn">Open</button>
+    <button class="fileSaveBtn">Save</button>
+    <button class="fileSaveAsBtn">Save As</button>
+    <br>
+    <textarea id="rdfInput" rows="10" cols="100"></textarea>
+    <br>
+    <br>
     <!-- Button to Convert RDF to Mermaid -->
-    <button id="convertBtn" onclick="generateMermaidDiagram()">Convert to Mermaid</button><br><br>
-
+    <button id="convertBtn" onclick="generateMermaidDiagram()">Convert to Mermaid</button>
+    <br>
+    <br>
+  </section>
+  <section class="file-section" data-section="2">
     <!-- Display Mermaid Syntax -->
     <h2>Mermaid Syntax:</h2>
-    <textarea id="mermaid-syntax" rows="10" cols="100"></textarea><br>
-
+    <select class="file-select">
+      <option value="" disabled selected>Select a file to open</option>
+    </select>
+    <button class="fileOpenBtn">Open</button>
+    <button class="fileSaveBtn">Save</button>
+    <button class="fileSaveAsBtn">Save As</button>
+    <br>
+    <textarea id="mermaid-syntax" rows="10" cols="100"></textarea>
+    <br>
     <!-- Button to ReRun Mermaid Diagram -->
-    <button id="reRunBtn" onclick="reRunMermaidDiagram()">ReRun Mermaid</button><br>
-
-    <!-- Output Area for the Diagram -->
-    <h2>Mermaid Diagram:</h2><button id="downloadPngBtn" onclick="downloadDiagram()">Download PNG</button>
-    <div id="mermaid-output" class="mermaid"></div>
+    <button id="reRunBtn" onclick="reRunMermaidDiagram()">ReRun Mermaid</button>
+    <br>
+  </section>
+</div>
+<footer class="mermaid-section" data-section="3">
+  <!-- Output Area for the Diagram -->
+  <h2>Mermaid Diagram:</h2>
+  <button id="downloadPngBtn" onclick="downloadDiagram()">Download PNG</button>
+  <div id="mermaid-output" class="mermaid"></div>
+</footer>
