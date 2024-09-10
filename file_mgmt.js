@@ -22,8 +22,8 @@
       };
     }
 
-    // Load both the file list in the <aside> and the dropdowns
-    function refreshFileUI() {
+    // Load both the file list in the <aside> and the dropdowns, making it global
+    window.refreshFileUI = function() {
       const transaction = db.transaction(['files'], 'readonly');
       const store = transaction.objectStore('files');
       const request = store.getAll();
