@@ -1,4 +1,4 @@
-refreshFileUI(); 
+
     let classLabels = {};
     let restrictionNodes = {};
     let diagramCounter = 0;
@@ -225,6 +225,11 @@ refreshFileUI();
                 console.error("Error generating PNG:", error);
             });
         }, 1000); // Adjust the timeout value if needed
+
     }
 
     initializeMermaid();
+
+document.addEventListener('DOMContentLoaded', () => {
+  refreshFileUI();  // Ensure this is called after the page is fully loaded
+});
