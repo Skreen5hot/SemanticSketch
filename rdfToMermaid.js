@@ -232,4 +232,5 @@
 
 document.addEventListener('DOMContentLoaded', () => {
   refreshFileUI();  // Ensure this is called after the page is fully loaded
+    alert("calling refreshFileUI function");
 });
