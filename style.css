@@ -49,13 +49,13 @@
     flex-direction: row;
   }
 
-  .sections {
+  #dynamic-tool {
     display: flex;
     flex-direction: column; /* Stack articles vertically */
     flex: 5;
   }
 
-  #tool-container > .sections {
+  #tool-container > #dynamic-tool {
     min-height: 60vh;
   }
 
@@ -70,11 +70,4 @@
 
   header, footer, article, nav, aside {
     padding: 1em;
-  }
-
-  .tool-section {
-    background-color: white;
-    padding: 20px;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   }
