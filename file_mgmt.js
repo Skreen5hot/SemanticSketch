@@ -21,6 +21,42 @@
         console.error('Error opening IndexedDB:', e);
       };
     }
+document.getElementById('file-input').addEventListener('change', handleFileUpload);
+
+function handleFileUpload(event) {
+  const files = event.target.files;
+  if (!files.length) {
+    return;
+  }
+
+  const transaction = db.transaction(['files'], 'readwrite');
+  const store = transaction.objectStore('files');
+
+  Array.from(files).forEach(file => {
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+      const content = e.target.result;
+
+      // Save file to IndexedDB
+      const saveRequest = store.put({
+        name: file.name,
+        content: content
+      });
+
+      saveRequest.onsuccess = () => {
+        alert(`File "${file.name}" uploaded successfully!`);
+        refreshFileUI();
+      };
+
+      saveRequest.onerror = (error) => {
+        console.error(`Error saving file "${file.name}":`, error);
+      };
+    };
+
+    reader.readAsText(file);
+  });
+}
 
     // Load both the file list in the <aside> and the dropdowns
     function refreshFileUI() {
