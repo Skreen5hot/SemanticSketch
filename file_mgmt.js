@@ -1,4 +1,4 @@
-    let db;
+  let db;
     let currentFile = null;
 
     // Initialize IndexedDB
@@ -21,42 +21,6 @@
         console.error('Error opening IndexedDB:', e);
       };
     }
-document.getElementById('file-input').addEventListener('change', handleFileUpload);
-
-function handleFileUpload(event) {
-  const files = event.target.files;
-  if (!files.length) {
-    return;
-  }
-
-  const transaction = db.transaction(['files'], 'readwrite');
-  const store = transaction.objectStore('files');
-
-  Array.from(files).forEach(file => {
-    const reader = new FileReader();
-
-    reader.onload = function(e) {
-      const content = e.target.result;
-
-      // Save file to IndexedDB
-      const saveRequest = store.put({
-        name: file.name,
-        content: content
-      });
-
-      saveRequest.onsuccess = () => {
-        alert(`File "${file.name}" uploaded successfully!`);
-        refreshFileUI();
-      };
-
-      saveRequest.onerror = (error) => {
-        console.error(`Error saving file "${file.name}":`, error);
-      };
-    };
-
-    reader.readAsText(file);
-  });
-}
 
     // Load both the file list in the <aside> and the dropdowns
     function refreshFileUI() {
@@ -287,6 +251,43 @@ function saveFile(section) {
         };
       }
     }
+
+    // Listen for file uploads
+// Listen for file uploads
+document.getElementById('file-input').addEventListener('change', handleFileUpload);
+
+function handleFileUpload(event) {
+  const files = event.target.files;
+
+  Array.from(files).forEach(file => {
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+      const content = e.target.result;
+      const fileName = file.name;
+
+      // Create a transaction for each file read to ensure the transaction is active
+      const transaction = db.transaction(['files'], 'readwrite');
+      const store = transaction.objectStore('files');
+
+      // Save the file content into IndexedDB
+      const request = store.put({ name: fileName, content: content });
+
+      request.onsuccess = () => {
+        console.log(`File "${fileName}" uploaded successfully!`);
+        refreshFileUI(); // Refresh the file list and dropdowns after uploading
+      };
+
+      request.onerror = (e) => {
+        console.error(`Error uploading file "${fileName}":`, e);
+      };
+    };
+
+    reader.readAsText(file);
+  });
+}
+
+
 
     // Initialize the app
     window.onload = () => {
