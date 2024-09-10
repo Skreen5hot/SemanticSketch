@@ -34,20 +34,26 @@
     </main>
 </div>
     <script>
-        function loadTool(htmlFile, jsFile) {
-            // Load HTML content
-            fetch(htmlFile)
-                .then(response => response.text())
-                .then(data => {
-                    document.getElementById('dynamic-tool').innerHTML = data;
+function loadTool(htmlFile, jsFile) {
+    fetch(htmlFile)
+        .then(response => response.text())
+        .then(data => {
+            document.getElementById('dynamic-tool').innerHTML = data;
 
-                    // Load the corresponding JS file after the HTML is loaded
-                    let script = document.createElement('script');
-                    script.src = jsFile;
-                    document.body.appendChild(script);
-                })
-                .catch(error => console.error('Error loading the tool:', error));
-        }
+            let script = document.createElement('script');
+            script.src = jsFile;
+            script.onload = () => {
+                if (typeof window.refreshFileUI === 'function') {
+                    console.log('refreshFileUI function is available.');
+                    window.refreshFileUI();
+                } else {
+                    console.error('refreshFileUI function is not available.');
+                }
+            };
+            document.body.appendChild(script);
+        })
+        .catch(error => console.error('Error loading the tool:', error));
+}
     </script>
 
 </body>
