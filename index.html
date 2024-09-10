@@ -13,31 +13,34 @@
 
 </head>
 <body>
-
+<header>
     <h1>Welcome to SemanticSketch Tools</h1>
-
     <div class="nav-buttons">
         <button onclick="loadTool('rdf-to-mermaid.html', 'rdfToMermaid.js')">RDF to Mermaid Conversion</button>
         <button onclick="loadTool('r2rml-to-mermaid.html', 'r2rmlToMermaid.js')">R2RML to Mermaid Conversion</button>
         <button onclick="loadTool('mermaid-comparison.html', 'mermaidComparison.js')">Mermaid Comparison Tool</button>
     </div>
-<main>
-         <aside>
-        <h2>Files</h2>
-      <input type="file" id="file-input" multiple accept="image/*">
-        <ul id="image-list"></ul>
-    </aside>
-    <div id="tool-container" class="tool-section">       
-        <p>Select a tool to load its functionality here.</p>
-    </div>
-</main>
+ </header>   
+<div id="container">
+        
+     <main id="tool-container" class="tool-section">
+        <aside>
+            <h2>Files</h2>
+            <input type="file" id="file-input" multiple="">
+            <ul id="file-list"></ul>
+        </aside>
+              <div id="dynamic-tools" class="tool-section">
+                  <p>Select a tool to load its functionality here.</p>
+              </div>
+    </main>
+</div>
     <script>
         function loadTool(htmlFile, jsFile) {
             // Load HTML content
             fetch(htmlFile)
                 .then(response => response.text())
                 .then(data => {
-                    document.getElementById('tool-container').innerHTML = data;
+                    document.getElementById('dynamic-tool').innerHTML = data;
 
                     // Load the corresponding JS file after the HTML is loaded
                     let script = document.createElement('script');
