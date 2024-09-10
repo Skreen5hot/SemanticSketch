@@ -1,4 +1,4 @@
-
+refreshFileUI(); 
     let classLabels = {};
     let restrictionNodes = {};
     let diagramCounter = 0;
