@@ -65,7 +65,7 @@
 
   header, footer {
     background: white;
-    height: 20vh;
+    width: 100%;
   }
 
   header, footer, article, nav, aside {
