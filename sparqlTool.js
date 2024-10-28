@@ -10,6 +10,14 @@ function loadTurtleFile() {
 
     // Open IndexedDB and fetch the file content
     const request = indexedDB.open("MyDatabaseName", 1);
+    request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        // Create the object store if it doesn't exist
+        if (!db.objectStoreNames.contains("MyObjectStoreName")) {
+            db.createObjectStore("MyObjectStoreName", { keyPath: "id" }); // Adjust keyPath as necessary
+        }
+    };
+
     request.onsuccess = (event) => {
         const db = event.target.result;
         const transaction = db.transaction(["MyObjectStoreName"], "readonly");
@@ -37,7 +45,6 @@ function loadTurtleFile() {
     };
 }
 
-
 function runSparqlQuery() {
     const queryText = document.getElementById("sparqlQuery").value;
     if (!queryText) {
@@ -63,16 +70,34 @@ function runSparqlQuery() {
 
 // Populate the select menu with files from IndexedDB or other storage
 function populateFileSelect() {
-    // Assume files are available in IndexedDB or an array of filenames
     const fileSelect = document.getElementById("sparql-file-select");
-    // Example: Populate with dummy file names for demonstration
-    const files = ["example1.ttl", "example2.ttl"];
-    files.forEach(file => {
-        const option = document.createElement("option");
-        option.value = file;
-        option.textContent = file;
-        fileSelect.appendChild(option);
-    });
+    // Assume files are available in IndexedDB or an array of filenames
+    const request = indexedDB.open("MyDatabaseName", 1);
+    
+    request.onsuccess = (event) => {
+        const db = event.target.result;
+        const transaction = db.transaction(["MyObjectStoreName"], "readonly");
+        const objectStore = transaction.objectStore("MyObjectStoreName");
+        const allFilesRequest = objectStore.getAll(); // Fetch all files
+
+        allFilesRequest.onsuccess = () => {
+            const files = allFilesRequest.result;
+            files.forEach(file => {
+                const option = document.createElement("option");
+                option.value = file.id; // Assuming each file has an 'id' property
+                option.textContent = file.id; // Adjust based on your data structure
+                fileSelect.appendChild(option);
+            });
+        };
+
+        allFilesRequest.onerror = () => {
+            console.error("Error retrieving files from IndexedDB");
+        };
+    };
+
+    request.onerror = () => {
+        console.error("Error opening IndexedDB.");
+    };
 }
 
 document.addEventListener("DOMContentLoaded", populateFileSelect);
