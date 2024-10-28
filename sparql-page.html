@@ -1,25 +1,28 @@
-<div class="sections">
-    <h2>SPARQL Query Tool</h2>
-    <h3>Load RDF File:</h3>
-
-    <!-- Main file selection area -->
-    <select id="sparql-file-selector" class="file-select" data-section="1">
+<section class="file-section" data-section="1">
+    <h3>RDF Input (Turtle, and N-Triples):</h3>
+    <select class="file-select">
         <option value="" disabled selected>Select a file to open</option>
-        <!-- Add options for files here if needed -->
     </select>
     <button class="fileOpenBtn">Open</button>
     <button class="fileSaveBtn">Save</button>
     <button class="fileSaveAsBtn">Save As</button>
-    
-    <h3>RDF Input (Turtle, and N-Triples):</h3>
-    <textarea id="rdfInput" rows="10" cols="100" placeholder="Enter RDF data here..."></textarea>
-    <br><br>
-
-    <h3>Enter SPARQL Query:</h3>
-    <textarea id="sparqlQuery" rows="10" cols="100" placeholder="Enter your SPARQL query here..."></textarea>
     <br>
-    <button id="runSPARQLBtn" onclick="runSPARQLQuery()">Run SPARQL Query</button>
-
-    <h3>Query Results:</h3>
-    <textarea id="sparqlResults" rows="10" cols="100" readonly placeholder="Results will appear here..."></textarea>
-</div>
+    <textarea id="rdfInput" rows="10" cols="100"></textarea>
+    <br><br>
+    <button id="convertBtn" onclick="generateMermaidDiagram()">Convert to Mermaid</button>
+    <br><br>
+</section>
+<section class="file-section" data-section="2">
+    <h3>Mermaid Syntax:</h3>
+    <select class="file-select">
+        <option value="" disabled selected>Select a file to open</option>
+    </select>
+    <button class="fileOpenBtn">Open</button>
+    <button class="fileSaveBtn">Save</button>
+    <button class="fileSaveAsBtn">Save As</button>
+    <br>
+    <textarea id="mermaid-syntax" rows="10" cols="100"></textarea>
+    <br>
+    <button id="reRunBtn" onclick="reRunMermaidDiagram()">ReRun Mermaid</button>
+    <br>
+</section>
