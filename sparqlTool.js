@@ -34,6 +34,7 @@ function runSPARQLQuery() {
             parseRDFXML(rdfInput);
         } else {
             console.error("Unsupported RDF format detected:", format);
+            console.error("Input RDF Data: ", rdfInput); // Log the input data
             document.getElementById("sparqlResults").value = "Unsupported RDF format: " + format;
             return;
         }
@@ -45,6 +46,7 @@ function runSPARQLQuery() {
         document.getElementById("sparqlResults").value = "Error processing RDF input: " + error.message;
     }
 }
+
 
 function executeSPARQL(query) {
     try {
