@@ -1,6 +1,21 @@
 // Assume RDF store is created globally
 let rdfStore = $rdf.graph(); // Using rdflib.js to create a graph
 
+function detectRDFFormat(rdfData) {
+    // Basic checks for common RDF formats
+    if (rdfData.startsWith('<')) {
+        return 'RDF/XML'; // Indicates RDF/XML format
+    } else if (rdfData.includes('@prefix')) {
+        return 'Turtle'; // Indicates Turtle format
+    } else if (rdfData.trim().startsWith('{')) {
+        return 'JSON-LD'; // Indicates JSON-LD format
+    } else if (rdfData.includes('http://') || rdfData.includes('https://')) {
+        return 'N-Triples'; // Potential N-Triples format based on URIs
+    } else {
+        return 'unknown'; // Format could not be determined
+    }
+}
+
 function runSPARQLQuery() {
     const rdfInput = document.getElementById("rdfInput").value;
     const sparqlQuery = document.getElementById("sparqlQuery").value;
@@ -10,17 +25,23 @@ function runSPARQLQuery() {
     console.log("Detected RDF format:", format);
 
     // Parse the RDF input and populate the RDF store
-    if (format === 'ntriples') {
-        parseNTriples(rdfInput);
-    } else if (format === 'turtle') {
-        parseTurtle(rdfInput);
-    } else {
-        console.error("Unsupported RDF format detected:", format);
-        return;
-    }
+    try {
+        if (format === 'Turtle') {
+            parseTurtle(rdfInput);
+        } else if (format === 'N-Triples') {
+            parseNTriples(rdfInput);
+        } else {
+            console.error("Unsupported RDF format detected:", format);
+            document.getElementById("sparqlResults").value = "Unsupported RDF format: " + format;
+            return;
+        }
 
-    // Run the SPARQL query
-    executeSPARQL(sparqlQuery);
+        // Run the SPARQL query
+        executeSPARQL(sparqlQuery);
+    } catch (error) {
+        console.error("Error during RDF processing:", error);
+        document.getElementById("sparqlResults").value = "Error processing RDF input: " + error.message;
+    }
 }
 
 function executeSPARQL(query) {
@@ -51,6 +72,7 @@ function parseTurtle(rdfInput) {
         console.log("Parsed Turtle input successfully.");
     } catch (error) {
         console.error("Error parsing Turtle RDF:", error);
+        throw new Error("Parsing Turtle RDF failed.");
     }
 }
 
@@ -81,9 +103,6 @@ function parseNTriples(rdfInput) {
 
     console.log("Parsed N-Triples input successfully.");
 }
-
-// Initialize Mermaid and other necessary functions
-initializeMermaid();
 
 document.addEventListener('DOMContentLoaded', () => {
     refreshFileUI(); // Ensure this is called after the page is fully loaded
