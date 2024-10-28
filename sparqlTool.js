@@ -16,45 +16,33 @@ function loadTool(htmlFile, jsFile) {
         .catch(error => console.error('Error loading the tool:', error));
 }
 
-function executeSparqlQuery() {
+// SPARQL Query Tool Functions
+function openSPARQLFile() {
+    const selectedFile = document.getElementById('sparql-file-selector').value;
+    const fileContent = loadFromIndexedDB(selectedFile); // Implement loading logic from IndexedDB
+    document.getElementById('sparqlQuery').value = fileContent;
+}
+
+function runSPARQLQuery() {
     const query = document.getElementById('sparqlQuery').value;
-    const resultsArea = document.getElementById('queryResults');
-    
-    // Open IndexedDB and retrieve RDF data
-    const request = indexedDB.open("rdfDatabase", 1);
-    
-    request.onsuccess = function(event) {
-        const db = event.target.result;
-        const transaction = db.transaction(["rdfData"], "readonly");
-        const store = transaction.objectStore("rdfData");
-        const getAllRequest = store.getAll();
+    const selectedFile = document.getElementById('sparql-file-selector').value;
 
-        getAllRequest.onsuccess = function(event) {
-            const rdfData = event.target.result;
-            const store = $rdf.graph();
-            
-            // Add RDF data to the rdflib store
-            rdfData.forEach(item => {
-                $rdf.parse(item.data, store, item.uri, item.type);
-            });
+    const rdfData = loadFromIndexedDB(selectedFile); // Implement loading logic from IndexedDB
+    const store = $rdf.graph();
+    const baseIRI = 'http://example.org/';
+    const contentType = 'text/turtle';
 
-            // Execute the SPARQL query
-            const results = $rdf.SPARQLToJSON($rdf.SPARQLQuery(store, query));
+    $rdf.parse(rdfData, store, baseIRI, contentType);
 
-            // Format and display results
-            if (results.length > 0) {
-                resultsArea.value = JSON.stringify(results, null, 2);
-            } else {
-                resultsArea.value = "No results found.";
-            }
-        };
-        
-        getAllRequest.onerror = function(event) {
-            resultsArea.value = "Error retrieving data from IndexedDB.";
-        };
-    };
-    
-    request.onerror = function(event) {
-        resultsArea.value = "Error opening IndexedDB.";
-    };
+    const results = $rdf.query(query, store);
+    const resultString = results.map(result => JSON.stringify(result)).join('\n');
+    document.getElementById('sparqlResults').value = resultString;
+}
+
+// Implement logic to load files from IndexedDB and update the file selector
+function loadFromIndexedDB(filename) {
+    // Add your IndexedDB retrieval logic here
+    // For demonstration purposes, returning an example RDF string
+    return `@prefix ex: <http://example.org/> .
+ex:subject ex:predicate ex:object.`;
 }
