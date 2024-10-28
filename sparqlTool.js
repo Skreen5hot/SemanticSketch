@@ -14,12 +14,22 @@ function loadTurtleFile() {
         const db = event.target.result;
         // Create the object store if it doesn't exist
         if (!db.objectStoreNames.contains("MyObjectStoreName")) {
-            db.createObjectStore("MyObjectStoreName", { keyPath: "id" }); // Adjust keyPath as necessary
+            db.createObjectStore("MyObjectStoreName", { keyPath: "id" }); // Ensure this matches how you store data
+            console.log("Object store created.");
+        } else {
+            console.log("Object store already exists.");
         }
     };
 
     request.onsuccess = (event) => {
         const db = event.target.result;
+
+        // Check if the object store exists before accessing it
+        if (!db.objectStoreNames.contains("MyObjectStoreName")) {
+            console.error("Object store not found. Please ensure it's created correctly.");
+            return;
+        }
+
         const transaction = db.transaction(["MyObjectStoreName"], "readonly");
         const objectStore = transaction.objectStore("MyObjectStoreName");
         const getRequest = objectStore.get(file);
@@ -76,6 +86,13 @@ function populateFileSelect() {
     
     request.onsuccess = (event) => {
         const db = event.target.result;
+
+        // Check if the object store exists before accessing it
+        if (!db.objectStoreNames.contains("MyObjectStoreName")) {
+            console.error("Object store not found. Please ensure it's created correctly.");
+            return;
+        }
+
         const transaction = db.transaction(["MyObjectStoreName"], "readonly");
         const objectStore = transaction.objectStore("MyObjectStoreName");
         const allFilesRequest = objectStore.getAll(); // Fetch all files
