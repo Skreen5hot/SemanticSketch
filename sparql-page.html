@@ -1,1 +1,21 @@
+<div class="sections">
+    <h2>SPARQL Query Tool</h2>
+    <section class="file-section" data-section="1">
+        <h3>Select Turtle File:</h3>
+        <select id="sparql-file-select">
+            <option value="" disabled selected>Select a file to load</option>
+            <!-- Options populated dynamically by sparqlTool.js -->
+        </select>
+        <button onclick="loadTurtleFile()">Load File</button>
+    </section>
+    <section class="query-section">
+        <h3>SPARQL Query:</h3>
+        <textarea id="sparqlQuery" rows="10" cols="100"></textarea>
+        <button onclick="runSparqlQuery()">Run Query</button>
+    </section>
+    <section class="results-section">
+        <h3>Query Results:</h3>
+        <pre id="sparqlResults"></pre>
+    </section>
+</div>
 
