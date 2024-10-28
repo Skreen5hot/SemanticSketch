@@ -8,17 +8,35 @@ function loadTurtleFile() {
         return;
     }
 
-    // Load the selected Turtle file from IndexedDB or file system (based on your setup)
-    // Example: fetch the content and parse it
-    fetch(file)
-        .then(response => response.text())
-        .then(data => {
-            // Parse Turtle data
-            $rdf.parse(data, store, 'http://example.org/', 'text/turtle');
-            alert("File loaded successfully.");
-        })
-        .catch(error => console.error("Error loading Turtle file:", error));
+    // Open IndexedDB and fetch the file content
+    const request = indexedDB.open("MyDatabaseName", 1);
+    request.onsuccess = (event) => {
+        const db = event.target.result;
+        const transaction = db.transaction(["MyObjectStoreName"], "readonly");
+        const objectStore = transaction.objectStore("MyObjectStoreName");
+        const getRequest = objectStore.get(file);
+
+        getRequest.onsuccess = () => {
+            const data = getRequest.result;
+            if (data) {
+                // Parse Turtle data
+                $rdf.parse(data.content, store, 'http://example.org/', 'text/turtle');
+                alert("File loaded successfully.");
+            } else {
+                alert("File not found in IndexedDB.");
+            }
+        };
+
+        getRequest.onerror = () => {
+            console.error("Error retrieving file from IndexedDB");
+        };
+    };
+
+    request.onerror = () => {
+        console.error("Error opening IndexedDB.");
+    };
 }
+
 
 function runSparqlQuery() {
     const queryText = document.getElementById("sparqlQuery").value;
