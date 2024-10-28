@@ -30,6 +30,8 @@ function runSPARQLQuery() {
             parseTurtle(rdfInput);
         } else if (format === 'N-Triples') {
             parseNTriples(rdfInput);
+        } else if (format === 'RDF/XML') {
+            parseRDFXML(rdfInput);
         } else {
             console.error("Unsupported RDF format detected:", format);
             document.getElementById("sparqlResults").value = "Unsupported RDF format: " + format;
@@ -76,7 +78,21 @@ function parseTurtle(rdfInput) {
     }
 }
 
-// Reusing parseNTriples function from rdfToMermaid.js
+// Function to parse RDF/XML data and populate the RDF store
+function parseRDFXML(rdfInput) {
+    const contentType = 'application/rdf+xml'; // Set correct content type for RDF/XML
+    const baseIRI = 'http://example.org/';
+
+    try {
+        $rdf.parse(rdfInput, rdfStore, baseIRI, contentType);
+        console.log("Parsed RDF/XML input successfully.");
+    } catch (error) {
+        console.error("Error parsing RDF/XML:", error);
+        throw new Error("Parsing RDF/XML failed.");
+    }
+}
+
+// Function to parse N-Triples data and populate the RDF store
 function parseNTriples(rdfInput) {
     console.log("Parsing N-Triples manually...");
     const lines = rdfInput.trim().split('\n');
