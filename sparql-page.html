@@ -1,11 +1,15 @@
 <div class="sections">
- <h2>SPARQL Query Tool</h2>
-                <h3>Enter your SPARQL Query:</h3>
-                <textarea id="sparqlQuery" rows="10" cols="100"></textarea>
-                <br>
-                <button id="executeQueryBtn" onclick="executeSparqlQuery()">Execute Query</button>
-                <br>
-                <h3>Query Results:</h3>
-                <textarea id="queryResults" rows="10" cols="100" readonly></textarea>
+   <h2>SPARQL Query Tool</h2>
+    <h3>Load RDF File:</h3>
+    <select id="sparql-file-selector" class="file-select">
+        <option value="" disabled selected>Select a file to query</option>
+    </select>
+    <button onclick="openSPARQLFile()">Open</button>
+    <h3>Enter SPARQL Query:</h3>
+    <textarea id="sparqlQuery" rows="10" cols="100"></textarea>
+    <br>
+    <button id="runSPARQLBtn" onclick="runSPARQLQuery()">Run SPARQL Query</button>
+    <h3>Query Results:</h3>
+    <textarea id="sparqlResults" rows="10" cols="100" readonly></textarea>
 </div>
 
