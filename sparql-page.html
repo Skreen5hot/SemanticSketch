@@ -1,24 +1,12 @@
 <div class="sections">
-    <h2>SPARQL Query Tool</h2>
-    <h3>Load RDF File:</h3>
-    <div class="file-section">
-        <select id="sparql-file-selector" class="file-select" data-section="1">
-            <option value="" disabled selected>Select a file to open</option>
-            <!-- Options will be dynamically populated here -->
-        </select>
-        <button class="fileOpenBtn">Open</button>
-        <button class="fileSaveBtn">Save</button>
-        <button class="fileSaveAsBtn">Save As</button>
-        <br>
-        <textarea id="rdfInput" rows="10" cols="100" placeholder="Enter RDF data here..."></textarea>
-        <br><br>
-        
-        <h3>Enter SPARQL Query:</h3>
-        <textarea id="sparqlQuery" rows="10" cols="100" placeholder="Enter your SPARQL query here..."></textarea>
-        <br>
-        <button id="runSPARQLBtn" onclick="runSPARQLQuery()">Run SPARQL Query</button>
-        
-        <h3>Query Results:</h3>
-        <textarea id="sparqlResults" rows="10" cols="100" readonly placeholder="Results will appear here..."></textarea>
-    </div>
+    <h1>RDF Query App</h1>
+
+    <h2>Load RDF File</h2>
+    <input type="file" id="fileInput" accept=".owl,.ttl,.rdf">
+
+    <h2>SPARQL Query</h2>
+    <textarea id="queryInput" placeholder="Enter your SPARQL query here..."></textarea>
+    <button onclick="executeQuery()">Execute Query</button>
+    <h2>Results</h2>
+    <div id="results"></div>
 </div>
