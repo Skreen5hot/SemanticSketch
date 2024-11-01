@@ -16,7 +16,11 @@
     </section>
 
     <h2>SPARQL Query</h2>
-    <textarea id="queryInput" placeholder="Enter your SPARQL query here..." rows="10" cols="100"></textarea>
+    <textarea id="queryInput" placeholder="Enter your SPARQL query here..." rows="10" cols="100">PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+SELECT *
+WHERE {
+    ?s ?p ?o .
+}LIMIT 5</textarea>
     <button onclick="executeQuery()">Execute Query</button>
 
     <h2>Results</h2>
