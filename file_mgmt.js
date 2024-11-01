@@ -1,4 +1,5 @@
-  let db;
+//11-1-2024  7:49am
+let db;
     let currentFile = null;
 
     // Initialize IndexedDB
@@ -116,12 +117,22 @@ function loadFileFromList(fileName) {
         if (select.value === fileName) {
           const textarea = section.querySelector('textarea');
           textarea.value = file.content;
+
+          // Load RDF content into the store without executing the query
+          loadRDFContent(file.content); // Ensure RDF is loaded
+          // No need to call executeQuery() here
         }
       });
     } else {
       console.error(`File "${fileName}" not found.`);
     }
   };
+
+  request.onerror = (e) => {
+    console.error('Error loading file from IndexedDB:', e);
+  };
+}
+
 
   request.onerror = (e) => {
     console.error('Error loading file from IndexedDB:', e);
