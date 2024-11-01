@@ -95,16 +95,3 @@ async function executeQuery() {
         document.getElementById('results').textContent = 'Error: ' + error.message;
     }
 }
-
-// Event listener for file buttons
-document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('fileOpenBtn')) {
-        const section = e.target.closest('.file-section');
-        const select = section.querySelector('.file-select');
-        if (select.value) {
-            loadFileFromIndexDB(select.value);
-        } else {
-            alert('Please select a file to open.');
-        }
-    }
-});
