@@ -1,4 +1,4 @@
-//11-1-2024  8:15am
+//11-1-2024  8:18am
 let store = new N3.Store();
 const DEBUG = true; // Set to true for debugging
 
@@ -33,8 +33,8 @@ async function executeQuery() {
     query = query.replace(/(\bhttp:\/\/[^\s<>]+)(?=\s)/g, '<$1>'); // Add brackets around IRIs
     log('After processing IRI patterns: ' + query);
 
-    // Wrap unbracketed CURIEs (e.g., prefix:localPart) in angle brackets
-    query = query.replace(/\b(\w+:\w+)\b(?!>)/g, '<$1>');
+    // Wrap unbracketed CURIEs (e.g., prefix:localPart) in angle brackets, except for known types
+    query = query.replace(/\b(?!rdf:type\b)(\w+:\w+)\b(?!>)/g, '<$1>');
     log('After wrapping unbracketed CURIEs: ' + query);
 
     // Log the final query before execution
@@ -88,5 +88,3 @@ async function executeQuery() {
         document.getElementById('results').textContent = 'Error: ' + error.message;
     }
 }
-
-
