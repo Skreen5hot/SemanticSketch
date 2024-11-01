@@ -1,4 +1,4 @@
-//11-1-2024  8:12am
+//11-1-2024  8:15am
 let store = new N3.Store();
 const DEBUG = true; // Set to true for debugging
 
@@ -12,9 +12,13 @@ function log(message) {
 async function executeQuery() {
     const queryEngine = new Comunica.QueryEngine();
     let query = document.getElementById('queryInput').value.trim();
+    
+    // Log the original query input
+    log('Original Query: ' + query);
 
     // Replace 'a' with 'rdf:type' correctly without angle brackets
     query = query.replace(/\ba\s/g, 'rdf:type ');
+    log('After replacing "a" with "rdf:type": ' + query);
 
     // Check for and process prefixes
     const prefixRegex = /^PREFIX\s+(\w+:\s*<[^>]+>\s*)+/g;
@@ -22,17 +26,19 @@ async function executeQuery() {
     if (prefixMatch) {
         // Remove prefixes from the main query to avoid parsing errors
         query = query.replace(prefixRegex, '');
+        log('After removing prefixes: ' + query);
     }
 
     // Replace IRI patterns with angle brackets
     query = query.replace(/(\bhttp:\/\/[^\s<>]+)(?=\s)/g, '<$1>'); // Add brackets around IRIs
+    log('After processing IRI patterns: ' + query);
 
     // Wrap unbracketed CURIEs (e.g., prefix:localPart) in angle brackets
     query = query.replace(/\b(\w+:\w+)\b(?!>)/g, '<$1>');
+    log('After wrapping unbracketed CURIEs: ' + query);
 
-    // Log the transformed query for debugging
-    log('Starting query execution...');
-    log('Query: ' + query);
+    // Log the final query before execution
+    log('Final Query to Execute: ' + query);
     log('Store size: ' + store.size);
 
     try {
@@ -82,4 +88,5 @@ async function executeQuery() {
         document.getElementById('results').textContent = 'Error: ' + error.message;
     }
 }
+
 
