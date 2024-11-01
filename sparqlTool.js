@@ -104,3 +104,5 @@
                 }
             }
         });
+console.log("Executing query:", queryInput);
+console.log("Loaded triples:", graph.size); // Check if graph contains data
