@@ -13,10 +13,20 @@ async function executeQuery() {
     const queryEngine = new Comunica.QueryEngine();
     let query = document.getElementById('queryInput').value.trim();
 
-    // Optimize query transformation
-    query = query.replace(/\ba\s/g, 'rdf:type ')
-                 .replace(/(\bhttp:\/\/[^\s<>]+)(?=\s)/g, '<$1>')
-                 .replace(/\b(\w+:\w+)\b(?!>)/g, '<$1>');
+    // Replace 'a' with 'rdf:type'
+    query = query.replace(/\ba\s/g, 'rdf:type ');
+
+    // Check for and process prefixes
+    const prefixRegex = /^PREFIX\s+(\w+:\s*<[^>]+>\s*)+/g;
+    const prefixMatch = query.match(prefixRegex);
+    if (prefixMatch) {
+        // Remove prefixes from the main query to avoid parsing errors
+        query = query.replace(prefixRegex, '');
+    }
+    // Replace IRI patterns with angle brackets if necessary
+    query = query.replace(/(\bhttp:\/\/[^\s<>]+)(?=\s)/g, '<$1>'); // Add brackets around IRIs
+    // Wrap unbracketed CURIEs (e.g., prefix:localPart) in angle brackets
+    query = query.replace(/\b(\w+:\w+)\b(?!>)/g, '<$1>');
 
     log('Starting query execution...');
     log('Query: ' + query);
@@ -24,12 +34,14 @@ async function executeQuery() {
 
     try {
         const result = await queryEngine.query(query, { sources: [store] });
+        
+        log('Query executed. Result type: ' + result.resultType);
 
         if (result.resultType === 'bindings') {
             const bindingsStream = await result.execute();
-
+            
             let tableHTML = '<table border="1"><thead><tr>';
-            const headers = [];
+            let headers = [];
             let count = 0;
 
             bindingsStream.on('data', (binding) => {
@@ -60,10 +72,11 @@ async function executeQuery() {
                 log('Error processing bindings: ' + error);
             });
         } else {
-            log('Unsupported result type: ' + result.resultType);
+            log('Unsupported result type.');
         }
     } catch (error) {
         log('Error executing query: ' + error);
         document.getElementById('results').textContent = 'Error: ' + error.message;
     }
+}
 }
