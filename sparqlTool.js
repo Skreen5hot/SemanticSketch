@@ -1,4 +1,4 @@
-//11-1-2024  7:25am
+//11-1-2024  7:36am
 let store = new N3.Store();
 const DEBUG = true; // Set to true for debugging
 
@@ -12,28 +12,34 @@ function log(message) {
 async function loadRDFContent(content, format = 'Turtle') {
     // Parse RDF content using the N3 library and populate the store
     const parser = new N3.Parser({ format: format });
+    let quadCount = 0; // Initialize a counter for quads
+
     parser.parse(content, (error, quad, prefixes) => {
         if (error) {
             log('Error parsing RDF content: ' + error);
         } else if (quad) {
             store.addQuad(quad);
-            log(`Quad added: ${quad.subject.value} ${quad.predicate.value} ${quad.object.value}`);
+            quadCount++; // Increment the counter for each added quad
         } else {
-            log('File loaded successfully. Triples count: ' + store.size);
+            log('File loaded successfully. Triples count: ' + store.size + ', Quads added: ' + quadCount);
         }
     });
+
+    // Check the store size after parsing
+    log('Current store size after loading: ' + store.size);
 }
+
 
 // Existing function to load file content from IndexedDB
 async function loadFileFromIndexDB(fileName) {
     const content = await loadFileFromList(fileName);
     if (content) {
-        // Load content into textarea and parse RDF
         document.getElementById('rdfInput').value = content;
-        log(`Loaded content: ${content.slice(0, 100)}...`); // Log first 100 chars of content for debug
-        loadRDFContent(content);
+        log(`Loaded content into textarea: ${content.slice(0, 100)}...`);
+        await loadRDFContent(content); // Ensure the RDF is fully loaded first
+        executeQuery(); // Call executeQuery only after RDF content is loaded
     } else {
-        log('Failed to load file from IndexedDB.');
+        log('Failed to load file from IndexedDB. Check if the file exists in the database.');
     }
 }
 
