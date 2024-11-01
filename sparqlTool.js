@@ -90,6 +90,8 @@
                 log('Error executing query: ' + error);
                 document.getElementById('results').textContent = 'Error: ' + error.message;
             }
+           console.log("Executing query:", queryInput);
+console.log("Loaded triples:", graph.size); // Check if graph contains data
         }
 
         // Event listener for file buttons
@@ -104,5 +106,4 @@
                 }
             }
         });
-console.log("Executing query:", queryInput);
-console.log("Loaded triples:", graph.size); // Check if graph contains data
+
