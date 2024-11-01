@@ -1,6 +1,6 @@
-//11-1-2024  7:22am
+//11-1-2024  7:25am
 let store = new N3.Store();
-const DEBUG = false;
+const DEBUG = true; // Set to true for debugging
 
 function log(message) {
     if (DEBUG) {
@@ -17,6 +17,7 @@ async function loadRDFContent(content, format = 'Turtle') {
             log('Error parsing RDF content: ' + error);
         } else if (quad) {
             store.addQuad(quad);
+            log(`Quad added: ${quad.subject.value} ${quad.predicate.value} ${quad.object.value}`);
         } else {
             log('File loaded successfully. Triples count: ' + store.size);
         }
@@ -29,6 +30,7 @@ async function loadFileFromIndexDB(fileName) {
     if (content) {
         // Load content into textarea and parse RDF
         document.getElementById('rdfInput').value = content;
+        log(`Loaded content: ${content.slice(0, 100)}...`); // Log first 100 chars of content for debug
         loadRDFContent(content);
     } else {
         log('Failed to load file from IndexedDB.');
