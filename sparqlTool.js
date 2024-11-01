@@ -1,109 +1,109 @@
-   let store = new N3.Store();
-        const DEBUG = false;
+// Initialize the graph as a global variable
+let graph = new rdf.graph();
 
-        function log(message) {
-            if (DEBUG) {
-                console.log(message);
-            }
-            document.getElementById('results').innerHTML += message + '<br>';
+/**
+ * Function to load RDF data into the graph.
+ * @param {string} fileContent - The content of the RDF file.
+ */
+function loadRDFData(fileContent) {
+    const mimeType = 'text/turtle'; // Set the MIME type based on file format (e.g., 'application/rdf+xml' for XML)
+    console.log('Loading RDF data...');
+
+    rdf.parse(fileContent, graph, 'http://example.org', mimeType, (err, kb) => {
+        if (err) {
+            console.error('Error loading RDF data:', err);
+        } else {
+            console.log('RDF data loaded successfully.');
+            console.log('Number of triples loaded:', graph.size);
         }
+    });
+}
 
-        async function loadRDFContent(content, format = 'Turtle') {
-            // Parse RDF content using the N3 library and populate the store
-            const parser = new N3.Parser({ format: format });
-            parser.parse(content, (error, quad, prefixes) => {
-                if (error) {
-                    log('Error parsing RDF content: ' + error);
-                } else if (quad) {
-                    store.addQuad(quad);
-                } else {
-                    log('File loaded successfully. Triples count: ' + store.size);
-                }
-            });
-        }
+/**
+ * Function to execute a SPARQL query on the RDF graph.
+ */
+function executeQuery() {
+    const queryInput = document.getElementById('queryInput').value;
+    const sparqlQuery = queryInput.trim();
 
-        // Existing function to load file content from IndexedDB
-        async function loadFileFromIndexDB(fileName) {
-            const content = await loadFileFromList(fileName);
-            if (content) {
-                // Load content into textarea and parse RDF
-                document.getElementById('rdfInput').value = content;
-                loadRDFContent(content);
-            } else {
-                log('Failed to load file from IndexedDB.');
-            }
-        }
+    if (!sparqlQuery) {
+        console.error('Query is empty');
+        return;
+    }
 
-        async function executeQuery() {
-            const queryEngine = new Comunica.QueryEngine();
-            let query = document.getElementById('queryInput').value.trim();
+    console.log('Executing query:', sparqlQuery);
 
-            query = query.replace(/\ba\s/g, 'rdf:type ');  // Replace 'a' with 'rdf:type'
-            query = query.replace(/(\bhttp:\/\/[^\s<>]+)(?=\s)/g, '<$1>');  // Add angle brackets around IRIs
-            query = query.replace(/\b(\w+:\w+)\b(?!>)/g, '<$1>');  // Wrap unbracketed CURIEs with angle brackets
+    try {
+        const query = rdf.SPARQLToQuery(sparqlQuery, true);
+        const results = [];
 
-            log('Starting query execution...');
-            log('Query: ' + query);
-            log('Store size: ' + store.size);
-
-            try {
-                const result = await queryEngine.query(query, { sources: [store] });
-                
-                if (result.resultType === 'bindings') {
-                    const bindingsStream = await result.execute();
-                    
-                    let tableHTML = '<table border="1"><thead><tr>';
-                    let headers = [];
-                    let count = 0;
-
-                    bindingsStream.on('data', (binding) => {
-                        count++;
-                        if (count === 1) {
-                            for (const [key] of binding.entries) {
-                                headers.push(key);
-                                tableHTML += `<th>${key}</th>`;
-                            }
-                            tableHTML += '</tr></thead><tbody>';
-                        }
-
-                        tableHTML += '<tr>';
-                        for (const [key, value] of binding.entries) {
-                            tableHTML += `<td>${value.value}</td>`;
-                        }
-                        tableHTML += '</tr>';
-                    });
-
-                    bindingsStream.on('end', () => {
-                        tableHTML += '</tbody></table>';
-                        log(`Processed ${count} bindings.`);
-                        document.getElementById('results').innerHTML = tableHTML;
-                        log('Query execution completed.');
-                    });
-
-                    bindingsStream.on('error', (error) => {
-                        log('Error processing bindings: ' + error);
-                    });
-                } else {
-                    log('Unsupported result type.');
-                }
-            } catch (error) {
-                log('Error executing query: ' + error);
-                document.getElementById('results').textContent = 'Error: ' + error.message;
-            }
-           console.log("Executing query:", queryInput);
-console.log("Loaded triples:", graph.size); // Check if graph contains data
-        }
-
-        // Event listener for file buttons
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('fileOpenBtn')) {
-                const section = e.target.closest('.file-section');
-                const select = section.querySelector('.file-select');
-                if (select.value) {
-                    loadFileFromIndexDB(select.value);
-                } else {
-                    alert('Please select a file to open.');
-                }
-            }
+        graph.query(query, (result) => {
+            results.push(result);
         });
 
+        console.log('Query execution completed. Number of results:', results.length);
+        displayResults(results);
+    } catch (error) {
+        console.error('Error executing query:', error);
+    }
+}
+
+/**
+ * Function to display query results in the results container.
+ * @param {Array} results - The array of results from the SPARQL query.
+ */
+function displayResults(results) {
+    const resultsContainer = document.getElementById('results');
+    resultsContainer.innerHTML = ''; // Clear previous results
+
+    if (results.length === 0) {
+        console.log('No results found.');
+        resultsContainer.innerHTML = '<p>No results found.</p>';
+        return;
+    }
+
+    console.log('Displaying results...');
+
+    // Create a table for displaying results
+    const table = document.createElement('table');
+    table.border = 1;
+    const headerRow = document.createElement('tr');
+    const headers = Object.keys(results[0]);
+    
+    // Create table headers
+    headers.forEach(header => {
+        const th = document.createElement('th');
+        th.textContent = header;
+        headerRow.appendChild(th);
+    });
+    table.appendChild(headerRow);
+
+    // Populate table rows with results
+    results.forEach(result => {
+        const row = document.createElement('tr');
+        headers.forEach(header => {
+            const td = document.createElement('td');
+            td.textContent = result[header] ? result[header].value : '';
+            row.appendChild(td);
+        });
+        table.appendChild(row);
+    });
+
+    resultsContainer.appendChild(table);
+}
+
+/**
+ * Event listener for file input to load selected RDF file.
+ */
+document.getElementById('file-input').addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        console.log('File loaded:', file.name);
+        loadRDFData(e.target.result);
+    };
+    reader.readAsText(file);
+    console.log('Reading file:', file.name);
+});
