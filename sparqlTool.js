@@ -1,127 +1,240 @@
-// Assume RDF store is created globally
-let rdfStore = $rdf.graph(); // Using rdflib.js to create a graph
+    let store = new N3.Store();
+        const DEBUG = false;
 
-function detectRDFFormat(rdfData) {
-    // Basic checks for common RDF formats
-    if (rdfData.startsWith('<')) {
-        return 'RDF/XML'; // Indicates RDF/XML format
-    } else if (rdfData.includes('@prefix')) {
-        return 'Turtle'; // Indicates Turtle format
-    } else if (rdfData.trim().startsWith('{')) {
-        return 'JSON-LD'; // Indicates JSON-LD format
-    } else if (rdfData.includes('http://') || rdfData.includes('https://')) {
-        return 'N-Triples'; // Potential N-Triples format based on URIs
-    } else {
-        return 'unknown'; // Format could not be determined
-    }
-}
-
-function runSPARQLQuery() {
-    const rdfInput = document.getElementById("rdfInput").value;
-    const sparqlQuery = document.getElementById("sparqlQuery").value;
-
-    // Detect RDF format and parse the input
-    const format = detectRDFFormat(rdfInput);
-    console.log("Detected RDF format:", format);
-
-    // Parse the RDF input and populate the RDF store
-    try {
-        if (format === 'Turtle') {
-            parseTurtle(rdfInput);
-        } else if (format === 'N-Triples') {
-            parseNTriples(rdfInput);
-        } else if (format === 'RDF/XML') {
-            parseRDFXML(rdfInput);
-        } else {
-            console.error("Unsupported RDF format detected:", format);
-            console.error("Input RDF Data: ", rdfInput); // Log the input data
-            document.getElementById("sparqlResults").value = "Unsupported RDF format: " + format;
-            return;
-        }
-
-        // Run the SPARQL query
-        executeSPARQL(sparqlQuery);
-    } catch (error) {
-        console.error("Error during RDF processing:", error);
-        document.getElementById("sparqlResults").value = "Error processing RDF input: " + error.message;
-    }
-}
-
-
-function executeSPARQL(query) {
-    try {
-        const results = $rdf.query(query, rdfStore);
-        displayResults(results);
-    } catch (error) {
-        console.error("Error executing SPARQL query:", error);
-        document.getElementById("sparqlResults").value = "Error executing query: " + error.message;
-    }
-}
-
-function displayResults(results) {
-    let output = "";
-    results.forEach(result => {
-        output += JSON.stringify(result, null, 2) + "\n"; // Format results as JSON for readability
-    });
-    document.getElementById("sparqlResults").value = output || "No results found.";
-}
-
-// Function to parse Turtle data and populate the RDF store
-function parseTurtle(rdfInput) {
-    const contentType = 'text/turtle';
-    const baseIRI = 'http://example.org/';
-
-    try {
-        $rdf.parse(rdfInput, rdfStore, baseIRI, contentType);
-        console.log("Parsed Turtle input successfully.");
-    } catch (error) {
-        console.error("Error parsing Turtle RDF:", error);
-        throw new Error("Parsing Turtle RDF failed.");
-    }
-}
-
-// Function to parse RDF/XML data and populate the RDF store
-function parseRDFXML(rdfInput) {
-    const contentType = 'application/rdf+xml'; // Set correct content type for RDF/XML
-    const baseIRI = 'http://example.org/';
-
-    try {
-        $rdf.parse(rdfInput, rdfStore, baseIRI, contentType);
-        console.log("Parsed RDF/XML input successfully.");
-    } catch (error) {
-        console.error("Error parsing RDF/XML:", error);
-        throw new Error("Parsing RDF/XML failed.");
-    }
-}
-
-// Function to parse N-Triples data and populate the RDF store
-function parseNTriples(rdfInput) {
-    console.log("Parsing N-Triples manually...");
-    const lines = rdfInput.trim().split('\n');
-
-    lines.forEach(line => {
-        const match = line.match(/<([^>]+)> <([^>]+)> (.+) \./);
-        if (match) {
-            const subject = match[1];
-            const predicate = match[2];
-            let object = match[3];
-
-            // Handle literals and URIs differently
-            if (object.startsWith('"')) {
-                object = object.split('^^')[0].replace(/^"|"$/g, ''); // Remove datatype and quotes
-                rdfStore.add($rdf.sym(subject), $rdf.sym(predicate), $rdf.literal(object));
-            } else {
-                object = object.replace(/^<|>$/g, ''); // Remove angle brackets
-                rdfStore.add($rdf.sym(subject), $rdf.sym(predicate), $rdf.sym(object));
+        function log(message) {
+            if (DEBUG) {
+                console.log(message);
             }
-        } else {
-            console.error("Invalid N-Triples line format:", line);
+            document.getElementById('results').innerHTML += message + '<br>';
         }
-    });
 
-    console.log("Parsed N-Triples input successfully.");
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const content = e.target.result;
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+                
+                if (fileExtension === 'ttl') {
+                    parseWithN3(content, 'Turtle');
+                } else if (fileExtension === 'owl' || fileExtension === 'rdf') {
+                    parseWithRdfParser(content);
+                } else {
+                    log('Unsupported file format');
+                }
+            };
+
+            reader.readAsText(file);
+        });
+
+        function parseWithN3(content, format) {
+            const parser = new N3.Parser({ format: format });
+            parser.parse(content, (error, quad, prefixes) => {
+                if (error) {
+                    log('Error parsing file: ' + error);
+                } else if (quad) {
+                    store.add(quad);
+                } else {
+                    log('File loaded successfully. Triples count: ' + store.size);
+                }
+            });
+        }
+
+        function parseWithRdfParser(content) {
+            const rdfParser = new DOMParser();
+            const xmlDoc = rdfParser.parseFromString(content, "text/xml");
+            const triples = [];
+
+            function extractTriples(subject, predicate, object) {
+                let objectValue;
+                if (typeof object === 'string') {
+                    objectValue = object;
+                } else if (object && typeof object === 'object') {
+                    objectValue = object.getAttribute && object.getAttribute('rdf:resource') || object.textContent && object.textContent.trim();
+                }
+                if (objectValue) {
+                    triples.push({ subject, predicate, object: objectValue });
+                }
+            }
+
+            function traverseXML(node, subject) {
+                if (node.nodeType === Node.ELEMENT_NODE) {
+                    const nodeName = node.nodeName;
+                    const newSubject = node.getAttribute('rdf:about') || node.getAttribute('rdf:ID') || subject;
+
+                    if (nodeName === 'owl:Class') {
+                        for (let child of node.childNodes) {
+                            if (child.nodeType === Node.ELEMENT_NODE) {
+                                if (child.nodeName === 'owl:equivalentClass') {
+                                    handleEquivalentClass(child, newSubject);
+                                } else {
+                                    extractTriples(newSubject, child.nodeName, child);
+                                }
+                            }
+                        }
+                    } else if (nodeName !== 'rdf:RDF' && nodeName !== 'rdf:Description') {
+                        for (let child of node.childNodes) {
+                            if (child.nodeType === Node.ELEMENT_NODE) {
+                                const predicate = child.nodeName;
+                                if (child.hasAttribute('rdf:resource')) {
+                                    extractTriples(newSubject, predicate, child);
+                                } else if (child.childNodes.length > 0) {
+                                    traverseXML(child, newSubject);
+                                } else {
+                                    extractTriples(newSubject, predicate, child);
+                                }
+                            }
+                        }
+                    } else {
+                        for (let child of node.childNodes) {
+                            traverseXML(child, newSubject);
+                        }
+                    }
+                }
+            }
+
+            function handleEquivalentClass(node, subject) {
+                for (let child of node.childNodes) {
+                    if (child.nodeType === Node.ELEMENT_NODE) {
+                        if (child.nodeName === 'owl:Class') {
+                            const oneOf = child.getElementsByTagName('owl:oneOf')[0];
+                            if (oneOf) {
+                                const members = oneOf.getElementsByTagName('rdf:Description');
+                                for (let member of members) {
+                                    const memberURI = member.getAttribute('rdf:about');
+                                    if (memberURI) {
+                                        extractTriples(memberURI, 'rdf:type', subject);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            const rdfRoot = xmlDoc.documentElement;
+            if (rdfRoot) {
+                traverseXML(rdfRoot, '');
+            }
+
+            triples.forEach(triple => {
+                store.addQuad(
+                    N3.DataFactory.namedNode(triple.subject),
+                    N3.DataFactory.namedNode(triple.predicate),
+                    triple.object.startsWith('http') ? N3.DataFactory.namedNode(triple.object) : N3.DataFactory.literal(triple.object)
+                );
+            });
+
+            log('File loaded successfully. Triples count: ' + store.size);
+        }
+
+        async function executeQuery() {
+            const queryEngine = new Comunica.QueryEngine();
+            let query = document.getElementById('queryInput').value.trim();
+
+            // Replace 'a' with 'rdf:type'
+            query = query.replace(/\ba\s/g, 'rdf:type ');
+
+            // Check for and process prefixes
+            const prefixRegex = /^PREFIX\s+(\w+:\s*<[^>]+>\s*)+/g;
+            const prefixMatch = query.match(prefixRegex);
+            if (prefixMatch) {
+                // Remove prefixes from the main query to avoid parsing errors
+                query = query.replace(prefixRegex, '');
+            }
+            // Replace IRI patterns with angle brackets if necessary
+            query = query.replace(/(\bhttp:\/\/[^\s<>]+)(?=\s)/g, '<$1>'); // Add brackets around IRIs
+            // Wrap unbracketed CURIEs (e.g., prefix:localPart) in angle brackets
+            query = query.replace(/\b(\w+:\w+)\b(?!>)/g, '<$1>');
+
+            log('Starting query execution...');
+            log('Query: ' + query);
+            log('Store size: ' + store.size);
+
+            try {
+                const result = await queryEngine.query(query, { sources: [store] });
+                
+                log('Query executed. Result type: ' + result.resultType);
+
+                if (result.resultType === 'bindings') {
+                    const bindingsStream = await result.execute();
+                    
+                    let tableHTML = '<table border="1"><thead><tr>';
+                    let headers = [];
+                    let count = 0;
+
+                    bindingsStream.on('data', (binding) => {
+                        count++;
+                        if (count === 1) {
+                            for (const [key] of binding.entries) {
+                                headers.push(key);
+                                tableHTML += `<th>${key}</th>`;
+                            }
+                            tableHTML += '</tr></thead><tbody>';
+                        }
+
+                        tableHTML += '<tr>';
+                        for (const [key, value] of binding.entries) {
+                            tableHTML += `<td>${value.value}</td>`;
+                        }
+                        tableHTML += '</tr>';
+                    });
+
+                    bindingsStream.on('end', () => {
+                        tableHTML += '</tbody></table>';
+                        log(`Processed ${count} bindings.`);
+                        document.getElementById('results').innerHTML = tableHTML;
+                        log('Query execution completed.');
+                    });
+
+                    bindingsStream.on('error', (error) => {
+                        log('Error processing bindings: ' + error);
+                    });
+                } else {
+                    log('Unsupported result type.');
+                }
+            } catch (error) {
+                log('Error executing query: ' + error);
+                document.getElementById('results').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        function testOptionalQuery() {
+            const query = `
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+                SELECT ?s ?p ?o ?optional
+                WHERE { 
+                    ?s ?p ?o .
+                    OPTIONAL { ?s <http://example.org/optionalPredicate> ?optional }
+                }
+            `;
+            document.getElementById('queryInput').value = query;
+            executeQuery();
+        }
+
+        function testPropertyPathQuery() {
+            const query = `
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+SELECT ?s ?o
+WHERE {
+?s (rdf:type|rdfs:subClassOf)* ?o .
 }
+            `;
+            document.getElementById('queryInput').value = query;
+            executeQuery();
+        }
 
-document.addEventListener('DOMContentLoaded', () => {
-    refreshFileUI(); // Ensure this is called after the page is fully loaded
-});
+        function testAggregationQuery() {
+            const query = `
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+                PREFIX ex: <http://example.org/>
+                SELECT (COUNT(?o) AS ?count) ?p
+                WHERE {
+                    ?s ?p ?o
+                }
+                GROUP BY ?p
+            `;
+            document.getElementById('queryInput').value = query;
+            executeQuery();
+        }
