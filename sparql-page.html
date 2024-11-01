@@ -1,6 +1,18 @@
 <div class="sections">
     <h1>RDF Query App</h1>
-
+ <section class="file-section" data-section="1">
+    <!-- Input Area for RDF Syntax -->
+    <h3>RDF Input (Turtle, and N-Triples):</h3>
+    <select class="file-select">
+      <option value="" disabled selected>Select a file to open</option>
+    </select>
+    <button class="fileOpenBtn">Open</button>
+    <button class="fileSaveBtn">Save</button>
+    <button class="fileSaveAsBtn">Save As</button>
+    <br>
+    <textarea id="rdfInput" rows="10" cols="100"></textarea>
+    <br>    <br>
+  </section>
     <h2>Load RDF File</h2>
     <input type="file" id="fileInput" accept=".owl,.ttl,.rdf">
 
