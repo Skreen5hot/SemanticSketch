@@ -1,4 +1,4 @@
-//11-1-2024  7:54am
+//11-1-2024  7:58am
 let db;
     let currentFile = null;
 
@@ -152,11 +152,6 @@ function loadFileFromList(fileName) {
   };
 }
 
-
-  request.onerror = (e) => {
-    console.error('Error loading file from IndexedDB:', e);
-  };
-}
 function saveFileAs(section) {
   const textarea = section.querySelector('textarea');
   const fileName = prompt('Enter the new file name:');
