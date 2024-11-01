@@ -1,4 +1,4 @@
-//11-1-2024  7:56am
+//11-1-2024  8:10am
 let store = new N3.Store();
 const DEBUG = true; // Set to true for debugging
 
@@ -13,7 +13,7 @@ async function executeQuery() {
     const queryEngine = new Comunica.QueryEngine();
     let query = document.getElementById('queryInput').value.trim();
 
-    // Replace 'a' with 'rdf:type'
+    // Replace 'a' with 'rdf:type', ensuring it's not wrapped in angle brackets
     query = query.replace(/\ba\s/g, 'rdf:type ');
 
     // Check for and process prefixes
@@ -23,11 +23,13 @@ async function executeQuery() {
         // Remove prefixes from the main query to avoid parsing errors
         query = query.replace(prefixRegex, '');
     }
+
     // Replace IRI patterns with angle brackets if necessary
     query = query.replace(/(\bhttp:\/\/[^\s<>]+)(?=\s)/g, '<$1>'); // Add brackets around IRIs
     // Wrap unbracketed CURIEs (e.g., prefix:localPart) in angle brackets
     query = query.replace(/\b(\w+:\w+)\b(?!>)/g, '<$1>');
 
+    // Log the transformed query for debugging
     log('Starting query execution...');
     log('Query: ' + query);
     log('Store size: ' + store.size);
@@ -78,5 +80,4 @@ async function executeQuery() {
         log('Error executing query: ' + error);
         document.getElementById('results').textContent = 'Error: ' + error.message;
     }
-}
 }
