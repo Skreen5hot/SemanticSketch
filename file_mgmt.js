@@ -1,4 +1,4 @@
-//11-1-2024  7:49am
+//11-1-2024  7:54am
 let db;
     let currentFile = null;
 
@@ -103,6 +103,25 @@ let db;
         saveFileAs(section);
       }
     });
+
+function loadRDFContent(content, format = 'Turtle') {
+    // Parse RDF content using the N3 library and populate the store
+    const parser = new N3.Parser({ format: format });
+    let quadCount = 0; // Initialize a counter for quads
+
+    parser.parse(content, (error, quad, prefixes) => {
+        if (error) {
+            log('Error parsing RDF content: ' + error);
+        } else if (quad) {
+            store.addQuad(quad);
+            quadCount++; // Increment the counter for each added quad
+        } else {
+            log('File loaded successfully. Triples count: ' + store.size + ', Quads added: ' + quadCount);
+            log('Current store size after loading: ' + store.size); // Check store size after parsing
+        }
+    });
+}
+
 function loadFileFromList(fileName) {
   const transaction = db.transaction(['files'], 'readonly');
   const store = transaction.objectStore('files');
